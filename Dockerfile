@@ -23,8 +23,12 @@ RUN mkdir -p /data/output
 # Copy requirements first (for Docker layer caching)
 COPY requirements.txt .
 
+# Cache buster - update this date to force pip reinstall
+ARG CACHEBUST=2026-06-23
+
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY agent.py .

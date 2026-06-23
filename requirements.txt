@@ -7,11 +7,12 @@ python-dotenv>=1.0,<2.0
 sqlite-vec>=0.1.6
 openai>=1.59,<2.0
 
-# LiveKit Agent (use matching versions for compatibility)
+# LiveKit Agent - Updated June 2026
+# Using latest stable versions for LanguageCode support
 livekit>=1.0.10
-livekit-agents>=1.0.20
-livekit-plugins-google>=1.0.20
-livekit-plugins-noise-cancellation>=0.2.5
+livekit-agents>=1.6.0
+livekit-plugins-google>=1.6.0
+livekit-plugins-noise-cancellation>=0.3.0
 
 # Server
 pydantic>=2.10,<3.0
