@@ -1,0 +1,14 @@
+nul
+__pycache__
+*.pyc
+.env
+*.db
+.git
+venv
+.DS_Store
+credentials.json
+token.json
+test_mem0.py
+flyer option 1.png
+KMS
+.claude

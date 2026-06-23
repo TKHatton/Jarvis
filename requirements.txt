@@ -1,0 +1,37 @@
+# Jarvis Core
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.34,<1.0
+python-dotenv>=1.0,<2.0
+
+# Memory System
+sqlite-vec>=0.1.6
+openai>=1.59,<2.0
+
+# LiveKit Agent
+livekit>=1.0.2
+livekit-agents>=1.0.15
+livekit-plugins-google>=1.0.15
+livekit-plugins-noise-cancellation>=0.2.3
+
+# Server
+pydantic>=2.10,<3.0
+httpx>=0.28,<1.0
+
+# Google APIs
+google-auth>=2.27
+google-auth-oauthlib>=1.2
+google-auth-httplib2>=0.2
+google-api-python-client>=2.114
+
+# Date parsing
+python-dateutil>=2.8
+
+# Web search
+duckduckgo-search>=4.1
+langchain-community>=0.0.20
+
+# HTTP client
+aiohttp>=3.10,<4.0
+
+# Process management for Docker
+supervisor>=4.2

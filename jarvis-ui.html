@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S — Just A Rather Very Intelligent System</title>
+    <!-- LiveKit Client SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.9.1/dist/livekit-client.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000000;
+            min-height: 100vh;
+            overflow: hidden;
+            color: #d4af37;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            position: relative;
+        }
+
+        /* Animated background grid */
+        .grid-background {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background-image:
+                linear-gradient(rgba(212, 175, 55, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Main content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            margin-bottom: 2rem;
+            flex-shrink: 0;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            color: #d4af37;
+            letter-spacing: 8px;
+            font-weight: 300;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .header-left p {
+            font-size: 0.8rem;
+            color: rgba(212, 175, 55, 0.6);
+            letter-spacing: 2px;
+            margin-top: 0.25rem;
+        }
+
+        .system-status {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.off {
+            background: rgba(212, 175, 55, 0.25);
+            box-shadow: none;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Main layout */
+        .content-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            gap: 2rem;
+            max-height: calc(100vh - 150px);
+            min-height: 0;
+        }
+
+        /* Side panels */
+        .side-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 4px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .side-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .panel-title {
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            margin-bottom: 1.5rem;
+            color: #d4af37;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Central hologram */
+        .hologram-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hologram-core {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Rotating rings */
+        .ring {
+            position: absolute;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 50%;
+        }
+
+        .ring-1 {
+            width: 380px;
+            height: 380px;
+            animation: rotate 10s linear infinite;
+            border-style: dashed;
+        }
+
+        .ring-2 {
+            width: 290px;
+            height: 290px;
+            animation: rotate 15s linear infinite reverse;
+        }
+
+        .ring-3 {
+            width: 210px;
+            height: 210px;
+            animation: rotate 12s linear infinite;
+            border-style: dotted;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Central orb */
+        .orb {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(244, 228, 163, 0.4), rgba(212, 175, 55, 0.2), transparent);
+            border: 2px solid #d4af37;
+            box-shadow:
+                0 0 30px rgba(212, 175, 55, 0.6),
+                inset 0 0 30px rgba(212, 175, 55, 0.3);
+            position: relative;
+            animation: orbPulse 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), inset 0 0 30px rgba(212, 175, 55, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(212, 175, 55, 0.8), inset 0 0 50px rgba(212, 175, 55, 0.5); }
+        }
+
+        .orb.listening {
+            animation: orbPulse 1.2s ease-in-out infinite;
+            border-color: #f4e4a3;
+        }
+
+        .orb.speaking {
+            animation: orbSpeak 0.4s ease-in-out infinite;
+            box-shadow: 0 0 60px rgba(212, 175, 55, 1), inset 0 0 50px rgba(212, 175, 55, 0.6);
+        }
+
+        @keyframes orbSpeak {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .orb.thinking {
+            animation: orbThink 1.5s ease-in-out infinite;
+            border-style: dashed;
+        }
+
+        @keyframes orbThink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.55; }
+        }
+
+        .orb.muted {
+            opacity: 0.5;
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        /* Particle system */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #d4af37;
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(212, 175, 55, 0.8);
+            animation: float-particle 4s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes float-particle {
+            0%, 100% { opacity: 0; transform: translateY(0) translateX(0); }
+            50% { opacity: 1; }
+        }
+
+        /* Status display */
+        .status-display {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            color: #d4af37;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .mic-hint {
+            font-size: 0.65rem;
+            color: rgba(212, 175, 55, 0.35);
+            letter-spacing: 1px;
+            margin-top: 0.3rem;
+        }
+
+        /* Control forms */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            color: rgba(212, 175, 55, 0.8);
+            text-transform: uppercase;
+        }
+
+        .control-group input,
+        .control-group select,
+        .control-group textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #d4af37;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-group input:focus,
+        .control-group select:focus,
+        .control-group textarea:focus {
+            outline: none;
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .control-group select option {
+            background: #111;
+            color: #d4af37;
+        }
+
+        .control-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        .button:hover {
+            background: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .button:active {
+            background: rgba(212, 175, 55, 0.3);
+        }
+
+        .button.primary {
+            background: rgba(212, 175, 55, 0.15);
+        }
+
+        .button:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .button.danger {
+            border-color: rgba(212, 175, 55, 0.4);
+            color: rgba(212, 175, 55, 0.6);
+        }
+
+        /* Memory items */
+        .memory-item {
+            background: rgba(212, 175, 55, 0.05);
+            border-left: 2px solid #d4af37;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            animation: memFadeIn 0.4s ease-out;
+        }
+
+        @keyframes memFadeIn {
+            from { opacity: 0; transform: translateX(-8px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .memory-item p {
+            color: rgba(212, 175, 55, 0.9);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .memory-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .memory-type {
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 2px 6px;
+        }
+
+        .memory-timestamp {
+            font-size: 0.7rem;
+            color: rgba(212, 175, 55, 0.4);
+            letter-spacing: 1px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: rgba(212, 175, 55, 0.3);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* Waveform visualization */
+        .waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 50px;
+            margin-top: 1rem;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 10px;
+            background: #d4af37;
+            border-radius: 2px;
+            opacity: 0.15;
+            transition: height 0.1s ease, opacity 0.2s ease;
+        }
+
+        .wave-bar.active {
+            opacity: 0.9;
+            animation: wave 0.7s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 40px; }
+        }
+
+        /* Conversation log */
+        .conversation-log {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            width: 100%;
+            max-width: 650px;
+        }
+
+        .log-entry {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border-left: 2px solid rgba(212, 175, 55, 0.3);
+            padding-left: 0.75rem;
+        }
+
+        .log-entry.user {
+            border-left-color: #d4af37;
+        }
+
+        .log-entry.assistant {
+            border-left-color: rgba(212, 175, 55, 0.6);
+        }
+
+        .log-entry.system {
+            border-left-color: rgba(212, 175, 55, 0.2);
+            opacity: 0.6;
+        }
+
+        .log-timestamp {
+            font-size: 0.7rem;
+            color: rgba(212, 175, 55, 0.4);
+            margin-bottom: 0.25rem;
+            letter-spacing: 1px;
+        }
+
+        .log-content {
+            color: rgba(212, 175, 55, 0.9);
+            line-height: 1.4;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.5); }
+
+        /* Glitch effect */
+        .glitch { animation: glitch 0.3s ease-in-out; }
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(-2px, -2px); }
+        }
+
+        /* Memory count badge */
+        .mem-count {
+            font-size: 0.65rem;
+            color: rgba(212, 175, 55, 0.4);
+            letter-spacing: 1px;
+            float: right;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+            }
+            .hologram-core { width: 280px; height: 280px; }
+            .ring-1 { width: 260px; height: 260px; }
+            .ring-2 { width: 200px; height: 200px; }
+            .ring-3 { width: 150px; height: 150px; }
+            .orb { width: 110px; height: 110px; }
+            .header { flex-direction: column; gap: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-background"></div>
+
+    <div class="container">
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1>J.A.R.V.I.S</h1>
+                    <p>JUST A RATHER VERY INTELLIGENT SYSTEM</p>
+                </div>
+                <div class="system-status">
+                    <div class="status-item">
+                        <div class="status-dot" id="dotOnline"></div>
+                        <span>ONLINE</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot off" id="dotConn"></div>
+                        <span id="connectionStatus">STANDBY</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot off" id="dotMem"></div>
+                        <span id="memoryStatus">MEMORY</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main grid -->
+            <div class="content-grid">
+                <!-- Left Panel: Configuration -->
+                <div class="side-panel">
+                    <div class="panel-title">SYSTEM CONFIGURATION</div>
+
+                    <div class="control-group">
+                        <label>User Identification</label>
+                        <input type="text" id="userName" value="Ma'am" placeholder="Enter designation">
+                    </div>
+
+                    <div class="control-group">
+                        <label>LiveKit Server URL</label>
+                        <input type="text" id="lkUrl" placeholder="wss://your-livekit-url">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Room Name</label>
+                        <input type="text" id="roomName" value="jarvis-room" placeholder="Room name">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Custom Directives</label>
+                        <textarea id="customInstructions" placeholder="Additional instructions for this session..."></textarea>
+                    </div>
+
+                    <button class="button primary" id="btnConnect" onclick="toggleConnection()">INITIALIZE SYSTEM</button>
+                    <button class="button danger" id="btnEnd" onclick="endSession()" disabled>END SESSION</button>
+                </div>
+
+                <!-- Center: Hologram Display -->
+                <div class="hologram-container">
+                    <div class="hologram-core">
+                        <div class="ring ring-1"></div>
+                        <div class="ring ring-2"></div>
+                        <div class="ring ring-3"></div>
+
+                        <div class="orb" id="mainOrb" onclick="toggleMic()" title="Click to toggle microphone">
+                            <!-- Particles -->
+                            <div class="particle" style="top: 20%; left: 30%; animation-delay: 0s;"></div>
+                            <div class="particle" style="top: 40%; right: 20%; animation-delay: 0.5s;"></div>
+                            <div class="particle" style="bottom: 30%; left: 25%; animation-delay: 1s;"></div>
+                            <div class="particle" style="bottom: 20%; right: 35%; animation-delay: 1.5s;"></div>
+                            <div class="particle" style="top: 50%; left: 10%; animation-delay: 2s;"></div>
+                            <div class="particle" style="top: 60%; right: 15%; animation-delay: 2.5s;"></div>
+                        </div>
+                    </div>
+
+                    <div class="status-display" id="statusDisplay">STANDBY MODE</div>
+                    <div class="mic-hint" id="micHint"></div>
+
+                    <!-- Waveform visualization -->
+                    <div class="waveform" id="waveform"></div>
+
+                    <!-- Conversation log -->
+                    <div class="conversation-log" id="conversationLog">
+                        <div class="log-entry system">
+                            <div class="log-timestamp">[SYSTEM] <span class="ts-now"></span></div>
+                            <div class="log-content">J.A.R.V.I.S interface loaded. Awaiting initialization.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Memory Bank -->
+                <div class="side-panel">
+                    <div class="panel-title">
+                        MEMORY BANK
+                        <span class="mem-count" id="memCount"></span>
+                    </div>
+
+                    <div id="memoriesContainer">
+                        <div class="empty-state">Initialize system to load memories</div>
+                    </div>
+
+                    <button class="button" onclick="refreshMemories()">REFRESH MEMORY BANK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ================================================================
+// STATE
+// ================================================================
+let lkRoom = null;
+let connected = false;
+let micEnabled = true;
+let currentState = 'standby'; // standby | connected | listening | speaking | thinking
+
+// ================================================================
+// INIT
+// ================================================================
+(function init() {
+    // Build waveform bars
+    const wf = document.getElementById('waveform');
+    for (let i = 0; i < 20; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'wave-bar';
+        bar.style.animationDelay = `${(i * 0.08).toFixed(2)}s`;
+        wf.appendChild(bar);
+    }
+
+    // Fill initial timestamps
+    document.querySelectorAll('.ts-now').forEach(el => {
+        el.textContent = ts();
+    });
+
+    // Try to load stored config
+    const saved = localStorage.getItem('jarvis-config');
+    if (saved) {
+        try {
+            const cfg = JSON.parse(saved);
+            if (cfg.lkUrl) document.getElementById('lkUrl').value = cfg.lkUrl;
+            if (cfg.roomName) document.getElementById('roomName').value = cfg.roomName;
+            if (cfg.userName) document.getElementById('userName').value = cfg.userName;
+        } catch(e) {}
+    }
+})();
+
+// ================================================================
+// HELPERS
+// ================================================================
+function ts() {
+    return new Date().toLocaleTimeString('en-US', { hour12: false });
+}
+
+function addLog(type, message) {
+    const log = document.getElementById('conversationLog');
+    const label = type === 'user' ? 'YOU' : type === 'assistant' ? 'J.A.R.V.I.S' : 'SYSTEM';
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.innerHTML = `
+        <div class="log-timestamp">[${label}] ${ts()}</div>
+        <div class="log-content">${escapeHtml(message)}</div>
+    `;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+}
+
+function saveConfig() {
+    const cfg = {
+        lkUrl: document.getElementById('lkUrl').value,
+        roomName: document.getElementById('roomName').value,
+        userName: document.getElementById('userName').value,
+    };
+    localStorage.setItem('jarvis-config', JSON.stringify(cfg));
+}
+
+// ================================================================
+// STATE MACHINE
+// ================================================================
+function setState(state) {
+    currentState = state;
+    const orb = document.getElementById('mainOrb');
+    const label = document.getElementById('statusDisplay');
+    const hint = document.getElementById('micHint');
+    const bars = document.querySelectorAll('.wave-bar');
+
+    // Reset orb classes
+    orb.className = 'orb';
+    bars.forEach(b => b.classList.remove('active'));
+
+    switch (state) {
+        case 'listening':
+            orb.classList.add('listening');
+            label.textContent = 'LISTENING';
+            hint.textContent = 'Click orb to mute';
+            bars.forEach(b => b.classList.add('active'));
+            break;
+
+        case 'speaking':
+            orb.classList.add('speaking');
+            label.textContent = 'SPEAKING';
+            hint.textContent = '';
+            bars.forEach(b => b.classList.add('active'));
+            break;
+
+        case 'thinking':
+            orb.classList.add('thinking');
+            label.textContent = 'PROCESSING';
+            hint.textContent = '';
+            break;
+
+        case 'connected':
+            label.textContent = 'SYSTEM ONLINE';
+            hint.textContent = 'Click orb to mute';
+            break;
+
+        case 'muted':
+            orb.classList.add('muted');
+            label.textContent = 'MUTED';
+            hint.textContent = 'Click orb to unmute';
+            break;
+
+        default:
+            label.textContent = 'STANDBY MODE';
+            hint.textContent = '';
+    }
+}
+
+// ================================================================
+// LIVEKIT CONNECTION
+// ================================================================
+async function toggleConnection() {
+    if (connected) {
+        endSession();
+        return;
+    }
+
+    const url = document.getElementById('lkUrl').value.trim();
+    const roomName = document.getElementById('roomName').value.trim();
+    const userName = document.getElementById('userName').value.trim() || "Ma'am";
+
+    if (!url) {
+        addLog('system', 'LiveKit server URL required.');
+        return;
+    }
+
+    const btn = document.getElementById('btnConnect');
+    btn.textContent = 'INITIALIZING...';
+    btn.disabled = true;
+
+    const status = document.getElementById('statusDisplay');
+    status.textContent = 'INITIALIZING...';
+    status.classList.add('glitch');
+
+    addLog('system', 'Establishing connection...');
+    saveConfig();
+
+    try {
+        // Try to get token from our backend
+        let token = null;
+        try {
+            const tokenRes = await fetch(`/api/token?user_id=${encodeURIComponent(userName)}&room=${encodeURIComponent(roomName)}`);
+            if (tokenRes.ok) {
+                const data = await tokenRes.json();
+                token = data.token;
+                addLog('system', 'Token acquired from server.');
+            }
+        } catch(e) {
+            // Backend not running or token endpoint not configured — that's ok
+        }
+
+        if (!token) {
+            addLog('system', 'No token server. Paste a token in the room name field if needed.');
+            // For direct token mode: user can paste token in roomName field
+            if (roomName.startsWith('ey')) {
+                token = roomName;
+                addLog('system', 'Using provided JWT token.');
+            } else {
+                throw new Error('No LiveKit token available. Configure LIVEKIT_API_KEY/SECRET in .env or paste a token.');
+            }
+        }
+
+        // Connect to LiveKit
+        lkRoom = new LivekitClient.Room({
+            adaptiveStream: true,
+            dynacast: true,
+        });
+
+        // ── Event Handlers ──────────────────────
+
+        lkRoom.on(LivekitClient.RoomEvent.TrackSubscribed, (track, publication, participant) => {
+            if (track.kind === 'audio') {
+                const el = track.attach();
+                el.id = `audio-${participant.identity}`;
+                document.body.appendChild(el);
+                setState('speaking');
+            }
+        });
+
+        lkRoom.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track) => {
+            track.detach().forEach(el => el.remove());
+            if (connected) setState('connected');
+        });
+
+        lkRoom.on(LivekitClient.RoomEvent.ActiveSpeakersChanged, (speakers) => {
+            if (!connected) return;
+            const agentSpeaking = speakers.some(s => !s.isLocal);
+            const userSpeaking = speakers.some(s => s.isLocal);
+
+            if (agentSpeaking) setState('speaking');
+            else if (userSpeaking) setState('listening');
+            else if (micEnabled) setState('connected');
+            else setState('muted');
+        });
+
+        lkRoom.on(LivekitClient.RoomEvent.Disconnected, () => {
+            addLog('system', 'Disconnected from room.');
+            resetUI();
+        });
+
+        lkRoom.on(LivekitClient.RoomEvent.DataReceived, (payload, participant) => {
+            // Handle text data from agent (transcriptions, etc.)
+            try {
+                const msg = JSON.parse(new TextDecoder().decode(payload));
+                if (msg.type === 'transcription' && msg.text) {
+                    addLog(msg.role || 'assistant', msg.text);
+                }
+            } catch(e) {}
+        });
+
+        // Connect
+        await lkRoom.connect(url, token);
+
+        // Publish microphone
+        await lkRoom.localParticipant.setMicrophoneEnabled(true);
+        micEnabled = true;
+
+        // Success
+        connected = true;
+        status.classList.remove('glitch');
+        setState('connected');
+
+        document.getElementById('dotConn').classList.remove('off');
+        document.getElementById('connectionStatus').textContent = 'CONNECTED';
+        btn.textContent = 'DISCONNECT';
+        btn.disabled = false;
+        document.getElementById('btnEnd').disabled = false;
+
+        addLog('system', 'Connection established.');
+        addLog('assistant', `Good evening, ${userName}. J.A.R.V.I.S at your service.`);
+
+        // Load memories
+        refreshMemories();
+
+    } catch (err) {
+        addLog('system', `Connection failed: ${err.message}`);
+        status.classList.remove('glitch');
+        btn.textContent = 'INITIALIZE SYSTEM';
+        btn.disabled = false;
+        setState('standby');
+    }
+}
+
+function endSession() {
+    if (lkRoom) {
+        lkRoom.disconnect();
+        lkRoom = null;
+    }
+    resetUI();
+    addLog('system', 'Session terminated.');
+}
+
+function resetUI() {
+    connected = false;
+    const btn = document.getElementById('btnConnect');
+    btn.textContent = 'INITIALIZE SYSTEM';
+    btn.disabled = false;
+    document.getElementById('btnEnd').disabled = true;
+    document.getElementById('dotConn').classList.add('off');
+    document.getElementById('connectionStatus').textContent = 'STANDBY';
+    setState('standby');
+}
+
+// ================================================================
+// MICROPHONE TOGGLE
+// ================================================================
+async function toggleMic() {
+    if (!connected || !lkRoom) return;
+
+    micEnabled = !micEnabled;
+    await lkRoom.localParticipant.setMicrophoneEnabled(micEnabled);
+
+    if (micEnabled) {
+        setState('connected');
+        addLog('system', 'Microphone enabled.');
+    } else {
+        setState('muted');
+        addLog('system', 'Microphone muted.');
+    }
+}
+
+// ================================================================
+// MEMORY PANEL
+// ================================================================
+async function refreshMemories() {
+    const container = document.getElementById('memoriesContainer');
+    const countEl = document.getElementById('memCount');
+    const userName = document.getElementById('userName').value.trim() || "Ma'am";
+
+    container.innerHTML = '<div class="empty-state">Loading memories...</div>';
+
+    try {
+        const res = await fetch(`/api/memories?user_id=${encodeURIComponent(userName)}&limit=30`);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const memories = await res.json();
+
+        if (!memories.length) {
+            container.innerHTML = '<div class="empty-state">No memories stored yet.<br><span style="font-size:0.65rem;opacity:0.5">Memories are saved when conversations end.</span></div>';
+            countEl.textContent = '0 RECORDS';
+            return;
+        }
+
+        container.innerHTML = '';
+        memories.forEach((m, i) => {
+            const div = document.createElement('div');
+            div.className = 'memory-item';
+            div.style.animationDelay = `${i * 0.05}s`;
+            div.innerHTML = `
+                <p>${escapeHtml(m.memory)}</p>
+                <div class="memory-meta">
+                    <span class="memory-type">${m.type || 'fact'}</span>
+                    <span class="memory-timestamp">${m.updated_at || ''}</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        countEl.textContent = `${memories.length} RECORDS`;
+        document.getElementById('dotMem').classList.remove('off');
+        document.getElementById('memoryStatus').textContent = 'MEMORY OK';
+
+    } catch (err) {
+        container.innerHTML = `
+            <div class="empty-state">
+                Memory API not available.<br><br>
+                <span style="font-size:0.65rem;opacity:0.5">
+                    Start jarvis_server.py to enable memory.
+                </span>
+            </div>
+        `;
+        document.getElementById('dotMem').classList.add('off');
+        document.getElementById('memoryStatus').textContent = 'MEMORY';
+    }
+}
+</script>
+</body>
+</html>

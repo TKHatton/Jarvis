@@ -1,0 +1,53 @@
+# Environment and secrets
+.env
+.env.*
+*.env
+
+# Google OAuth credentials (NEVER commit these)
+credentials.json
+token.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyc
+.Python
+venv/
+env/
+ENV/
+.venv/
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# Output directory (generated files)
+jarvis_output/
+
+# Logs
+*.log
+logs/
+
+# Test files
+test_*.db
