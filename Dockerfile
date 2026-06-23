@@ -24,7 +24,7 @@ RUN mkdir -p /data/output
 COPY requirements.txt .
 
 # Cache buster - update this date to force pip reinstall
-ARG CACHEBUST=2026-06-23-v2
+ARG CACHEBUST=2026-06-23-v3
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
