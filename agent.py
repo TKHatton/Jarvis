@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions, ChatContext
-from livekit.agents.voice import AgentTurnDetector
 from livekit.plugins import noise_cancellation, google
 
 from prompts import AGENT_INSTRUCTION, SESSION_INSTRUCTION
@@ -158,12 +157,7 @@ async def entrypoint(ctx: agents.JobContext):
                 logging.error(f"Failed to save memory: {e}")
 
     session = AgentSession(
-        # Configure turn detection to be less aggressive
-        # This prevents cutting out during natural pauses in speech
-        turn_detection=AgentTurnDetector(
-            min_silence_duration=0.8,  # Wait longer before assuming turn is done (default ~0.5)
-            min_speech_duration=0.3,   # Require more speech before registering (default ~0.1)
-        ),
+        # Turn detection is handled by the RealtimeModel internally
     )
 
     # Register shutdown callback BEFORE starting the session
