@@ -434,6 +434,79 @@ async def deprecate_memory(memory_id: int):
         raise HTTPException(500, str(e))
 
 
+# ── File Access ───────────────────────────────────────────────
+
+OUTPUT_DIR = Path(os.getenv("JARVIS_OUTPUT_DIR", Path.home() / "jarvis_output"))
+
+
+@app.get("/api/files", dependencies=[Depends(require_auth)])
+async def list_output_files():
+    """List all files in the JARVIS output directory."""
+    try:
+        if not OUTPUT_DIR.exists():
+            return {"files": [], "message": "Output directory is empty"}
+
+        files = []
+        for f in sorted(OUTPUT_DIR.rglob("*")):
+            if f.is_file():
+                rel_path = f.relative_to(OUTPUT_DIR)
+                stat = f.stat()
+                files.append({
+                    "name": str(rel_path),
+                    "size": stat.st_size,
+                    "modified": stat.st_mtime,
+                })
+
+        return {"files": files, "directory": str(OUTPUT_DIR)}
+    except Exception as e:
+        logger.error("Error listing files: %s", e)
+        raise HTTPException(500, str(e))
+
+
+@app.get("/api/files/{filename:path}", dependencies=[Depends(require_auth)])
+async def download_file(filename: str):
+    """Download a file from the JARVIS output directory."""
+    try:
+        # Security: prevent path traversal
+        if ".." in filename:
+            raise HTTPException(400, "Invalid filename")
+
+        filepath = OUTPUT_DIR / filename
+
+        if not filepath.exists():
+            raise HTTPException(404, f"File '{filename}' not found")
+
+        if not filepath.is_file():
+            raise HTTPException(400, "Not a file")
+
+        # Determine media type
+        suffix = filepath.suffix.lower()
+        media_types = {
+            ".txt": "text/plain",
+            ".md": "text/markdown",
+            ".html": "text/html",
+            ".py": "text/x-python",
+            ".json": "application/json",
+            ".csv": "text/csv",
+            ".pdf": "application/pdf",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+        }
+        media_type = media_types.get(suffix, "application/octet-stream")
+
+        return FileResponse(
+            path=filepath,
+            filename=filepath.name,
+            media_type=media_type,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error downloading file: %s", e)
+        raise HTTPException(500, str(e))
+
+
 # ── LiveKit Token (optional) ─────────────────────────────────
 
 @app.get("/api/token", dependencies=[Depends(require_auth)])
